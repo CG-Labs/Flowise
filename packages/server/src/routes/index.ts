@@ -38,6 +38,7 @@ import vectorRouter from './vectors'
 import verifyRouter from './verify'
 import versionRouter from './versions'
 import upsertHistoryRouter from './upsert-history'
+import chatflowsService from '../services/chatflows'
 
 const router = express.Router()
 
@@ -80,5 +81,15 @@ router.use('/vector', vectorRouter)
 router.use('/verify', verifyRouter)
 router.use('/version', versionRouter)
 router.use('/upsert-history', upsertHistoryRouter)
+
+// New route to get all chatflows
+router.get('/api/v1/get-all-chatflows', async (req, res) => {
+    try {
+        const chatflows = await chatflowsService.getAllChatflows()
+        res.json({ chatflows })
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve chatflows', details: error })
+    }
+})
 
 export default router
