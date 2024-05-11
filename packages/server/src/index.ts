@@ -147,6 +147,7 @@ export class App {
             })
         }
 
+        // API routes should be checked before serving static files
         this.app.use('/api/v1', flowiseApiV1Router)
 
         // Error handling
