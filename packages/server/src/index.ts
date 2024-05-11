@@ -20,6 +20,7 @@ import { sanitizeMiddleware, getCorsOptions, getAllowedIframeOrigins } from './u
 import { Telemetry } from './utils/telemetry'
 import flowiseApiV1Router from './routes'
 import errorHandlerMiddleware from './middlewares/errors'
+import chatflowsService from './services/chatflows'
 
 declare global {
     namespace Express {
@@ -149,33 +150,31 @@ export class App {
 
         this.app.use('/api/v1', flowiseApiV1Router)
 
-        // ----------------------------------------
-        // Configure number of proxies in Host Environment
-        // ----------------------------------------
-        this.app.get('/api/v1/ip', (request, response) => {
-            response.send({
-                ip: request.ip,
-                msg: 'Check returned IP address in the response. If it matches your current IP address ( which you can get by going to http://ip.nfriedly.com/ or https://api.ipify.org/ ), then the number of proxies is correct and the rate limiter should now work correctly. If not, increase the number of proxies by 1 and restart Cloud-Hosted Flowise until the IP address matches your own. Visit https://docs.flowiseai.com/configuration/rate-limit#cloud-hosted-rate-limit-setup-guide for more information.'
-            })
-        })
-
-        // ----------------------------------------
-        // Serve UI static
-        // ----------------------------------------
-
-        const packagePath = getNodeModulesPackagePath('flowise-ui')
-        const uiBuildPath = path.join(packagePath, 'build')
-        const uiHtmlPath = path.join(packagePath, 'build', 'index.html')
-
-        this.app.use('/', express.static(uiBuildPath))
-
-        // All other requests not handled will return React app
-        this.app.use((req: Request, res: Response) => {
-            res.sendFile(uiHtmlPath)
+        // New route to get all chatflows
+        this.app.get('/api/v1/get-all-chatflows', async (req: Request, res: Response) => {
+            try {
+                const chatflows = await chatflowsService.getAllChatflows()
+                res.json({ chatflows })
+            } catch (error) {
+                res.status(500).json({ error: 'Failed to retrieve chatflows', details: error })
+            }
         })
 
         // Error handling
         this.app.use(errorHandlerMiddleware)
+
+        // Serve UI static after API routes to ensure API calls are not intercepted
+        const packagePath = getNodeModulesPackagePath('flowise-ui')
+        const uiBuildPath = path.join(packagePath, 'build')
+        const uiHtmlPath = path.join(packagePath, 'build', 'index.html')
+
+        // All other requests not handled by API routes will return React app
+        this.app.get('*', (req: Request, res: Response) => {
+            res.sendFile(uiHtmlPath)
+        })
+
+        // Serve UI static after API routes and the catch-all route to ensure API calls are not intercepted
+        this.app.use('/', express.static(uiBuildPath))
     }
 
     async stopApp() {
