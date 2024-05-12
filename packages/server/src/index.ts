@@ -20,7 +20,6 @@ import { sanitizeMiddleware, getCorsOptions, getAllowedIframeOrigins } from './u
 import { Telemetry } from './utils/telemetry'
 import flowiseApiV1Router from './routes'
 import errorHandlerMiddleware from './middlewares/errors'
-import chatflowsService from './services/chatflows'
 
 // Define paths for UI static files
 const packagePath = getNodeModulesPackagePath('flowise-ui')
@@ -123,6 +122,15 @@ export class App {
             next()
         })
 
+        // API routes should be checked before serving static files
+        this.app.use('/api/v1', flowiseApiV1Router)
+
+        // Serve static files for UI
+        this.app.use(express.static(uiBuildPath))
+
+        // Error handling
+        this.app.use(errorHandlerMiddleware)
+
         // Make io accessible to our router on req.io
         this.app.use((req, res, next) => {
             req.io = socketIO
@@ -159,31 +167,9 @@ export class App {
             })
         }
 
-        // Route handler for '/api/v1/get-all-chatflows'
-        flowiseApiV1Router.get('/get-all-chatflows', async (req: Request, res: Response) => {
-            try {
-                const chatflows = await chatflowsService.getAllChatflows()
-                res.json(chatflows)
-            } catch (error) {
-                logger.error(`Error retrieving chatflows: ${error}`)
-                res.status(500).send('Error retrieving chatflows')
-            }
-        })
-
-        // Removed the incomplete route handler and duplicate error handling middleware
-
-        // API routes should be checked before serving static files
-        this.app.use('/api/v1', flowiseApiV1Router)
-
-        // Error handling
-        this.app.use(errorHandlerMiddleware)
-
-        // Serve static files for UI
-        this.app.use(express.static(uiBuildPath))
-
-        // All other requests not handled by API routes will return React app
+        // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
+        // It is moved inside the config method to the end of the middleware definitions
         this.app.get('*', (req: Request, res: Response) => {
-            // Serve the React app for any other requests
             res.sendFile(uiHtmlPath)
         })
     }
@@ -217,6 +203,8 @@ export async function start(): Promise<void> {
 
     await serverApp.initDatabase()
     await serverApp.config(io)
+
+    // The basic authentication middleware and other configurations will be placed here
 
     server.listen(port, () => {
         logger.info(`⚡️ [server]: Flowise Server is listening at ${port}`)

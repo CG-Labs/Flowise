@@ -82,6 +82,15 @@ router.use('/verify', verifyRouter)
 router.use('/version', versionRouter)
 router.use('/upsert-history', upsertHistoryRouter)
 
-// No need to define the /api/v1/get-all-chatflows route here as it should be handled by flowiseApiV1Router in src/index.ts
+// Route handler for '/api/v1/get-all-chatflows' to serve JSON data
+chatflowsRouter.get('/get-all-chatflows', async (req, res) => {
+    try {
+        const chatflows = await chatflowsService.getAllChatflows()
+        res.json(chatflows)
+    } catch (error) {
+        console.error(`Error retrieving chatflows: ${error}`)
+        res.status(500).send('Error retrieving chatflows')
+    }
+})
 
 export default router
