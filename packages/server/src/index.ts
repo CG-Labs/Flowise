@@ -23,7 +23,6 @@ import errorHandlerMiddleware from './middlewares/errors'
 // Define paths for UI static files
 const packagePath = getNodeModulesPackagePath('flowise-ui')
 const uiBuildPath = path.join(packagePath, 'build')
-const uiHtmlPath = path.join(packagePath, 'build', 'index.html')
 
 declare global {
     namespace Express {
@@ -136,11 +135,7 @@ export class App {
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
         // It serves index.html for any non-API requests
         this.app.get('*', (req: Request, res: Response, next) => {
-            if (req.originalUrl.startsWith('/api/v1')) {
-                next() // Pass API requests to the next middleware
-            } else {
-                res.status(404).send('Not Found') // Respond with 404 for non-API requests not handled by static files
-            }
+            res.status(404).send('Not Found') // Respond with 404 for all unhandled requests
         })
 
         // Error handling
