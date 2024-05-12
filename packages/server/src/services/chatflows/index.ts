@@ -102,6 +102,7 @@ const deleteChatflow = async (chatflowId: string): Promise<any> => {
 const getAllChatflows = async (): Promise<IChatFlow[]> => {
     try {
         const appServer = getRunningExpressApp()
+        logger.info('getAllChatflows called') // Added logging to confirm function call
         const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).find()
         return dbResponse
     } catch (error) {
