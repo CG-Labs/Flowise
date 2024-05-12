@@ -171,14 +171,14 @@ export class App {
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
         // It is moved inside the config method to the end of the middleware definitions
         this.app.get('*', (req: Request, res: Response, next) => {
-            // Check if the request is for an API route and skip to next middleware if so
-            if (req.path.startsWith('/api/v1')) {
-                next()
-            } else {
+            // Serve index.html for any non-API requests
+            if (!req.path.startsWith('/api/')) {
                 res.sendFile(uiHtmlPath)
+            } else {
+                // If the request starts with '/api/', it should be handled by the API routes
+                next()
             }
         })
-        // This section has been removed due to duplication
     }
 
     async stopApp() {
