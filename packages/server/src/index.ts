@@ -3,7 +3,6 @@ import { Request, Response } from 'express'
 import path from 'path'
 import cors from 'cors'
 import http from 'http'
-import basicAuth from 'express-basic-auth'
 import { Server } from 'socket.io'
 import { DataSource } from 'typeorm'
 import { IChatFlow } from './Interface'
@@ -131,49 +130,16 @@ export class App {
             next()
         })
 
-        // Basic authentication middleware
-        if (process.env.FLOWISE_USERNAME && process.env.FLOWISE_PASSWORD) {
-            const username = process.env.FLOWISE_USERNAME
-            const password = process.env.FLOWISE_PASSWORD
-            const basicAuthMiddleware = basicAuth({
-                users: { [username]: password }
-            })
-            const whitelistURLs = [
-                '/api/v1/verify/apikey/',
-                '/api/v1/chatflows/apikey/',
-                '/api/v1/public-chatflows',
-                '/api/v1/public-chatbotConfig',
-                '/api/v1/prediction/',
-                '/api/v1/vector/upsert/',
-                '/api/v1/node-icon/',
-                '/api/v1/components-credentials-icon/',
-                '/api/v1/chatflows-streaming',
-                '/api/v1/chatflows-uploads',
-                '/api/v1/openai-assistants-file/download',
-                '/api/v1/feedback',
-                '/api/v1/leads',
-                '/api/v1/get-upload-file',
-                '/api/v1/ip'
-            ]
-            this.app.use((req, res, next) => {
-                if (req.url.includes('/api/v1/')) {
-                    whitelistURLs.some((url) => req.url.includes(url)) ? next() : basicAuthMiddleware(req, res, next)
-                } else next()
-            })
-        }
-
         // Serve static files for UI
         this.app.use(express.static(uiBuildPath))
 
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
-        // It is moved inside the config method to the end of the middleware definitions
+        // It serves index.html for any non-API requests
         this.app.get('*', (req: Request, res: Response, next) => {
-            // Serve index.html for any non-API requests
-            if (!req.path.startsWith('/api/v1')) {
-                res.sendFile(uiHtmlPath)
+            if (req.originalUrl.startsWith('/api/v1')) {
+                next() // Pass API requests to the next middleware
             } else {
-                // If the request starts with '/api/v1', it should be handled by the API routes
-                next()
+                res.sendFile(uiHtmlPath) // Serve static files for non-API requests
             }
         })
 
