@@ -50,6 +50,9 @@ const logger = createLogger({
     ]
 })
 
+// Test log entry to confirm logger writes to the server-error.log file
+logger.error('Test error logging entry')
+
 /**
  * This function is used by express as a middleware.
  * @example
