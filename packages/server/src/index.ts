@@ -170,6 +170,8 @@ export class App {
             }
         })
 
+        // Removed the incomplete route handler and duplicate error handling middleware
+
         // API routes should be checked before serving static files
         this.app.use('/api/v1', flowiseApiV1Router)
 
