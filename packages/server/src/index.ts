@@ -125,16 +125,27 @@ export class App {
         // API routes should be checked before serving static files
         this.app.use('/api/v1', flowiseApiV1Router)
 
+        // Make io accessible to our router on req.io
+        this.app.use((req, res, next) => {
+            req.io = socketIO
+            next()
+        })
+
         // Serve static files for UI
         this.app.use(express.static(uiBuildPath))
 
         // Error handling
         this.app.use(errorHandlerMiddleware)
 
-        // Make io accessible to our router on req.io
-        this.app.use((req, res, next) => {
-            req.io = socketIO
-            next()
+        // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
+        // It is moved inside the config method to the end of the middleware definitions
+        this.app.get('*', (req: Request, res: Response, next) => {
+            // Check if the request is for an API route and skip to next middleware if so
+            if (req.path.startsWith('/api/v1')) {
+                next()
+            } else {
+                res.sendFile(uiHtmlPath)
+            }
         })
 
         if (process.env.FLOWISE_USERNAME && process.env.FLOWISE_PASSWORD) {
@@ -166,12 +177,6 @@ export class App {
                 } else next()
             })
         }
-
-        // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
-        // It is moved inside the config method to the end of the middleware definitions
-        this.app.get('*', (req: Request, res: Response) => {
-            res.sendFile(uiHtmlPath)
-        })
     }
 
     async stopApp() {
