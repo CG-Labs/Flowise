@@ -4,7 +4,7 @@ import chatflowsService from '../services/chatflows'
 const router = express.Router()
 
 // Route to get all chatflows
-router.get('/get-all-chatflows', async (req, res) => {
+router.get('/chatflows/get-all-chatflows', async (req, res) => {
     // Added logging to confirm route is hit
     console.log('Received request for all chatflows')
     try {

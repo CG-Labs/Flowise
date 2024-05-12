@@ -1,5 +1,5 @@
 import express from 'express'
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import path from 'path'
 import cors from 'cors'
 import http from 'http'
@@ -134,20 +134,25 @@ export class App {
 
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
         // It serves index.html for any non-API requests
-        this.app.get('*', (req: Request, res: Response, next) => {
-            res.status(404).send('Not Found') // Respond with 404 for all unhandled requests
+        this.app.get('*', (req: Request, res: Response, next: NextFunction) => {
+            // Check if the request is for an API endpoint
+            if (!req.originalUrl.startsWith('/api/v1')) {
+                // For non-API requests, serve the index.html file
+                res.sendFile(path.join(uiBuildPath, 'index.html'))
+            } else {
+                // For API requests, pass to the next middleware
+                next()
+            }
         })
 
         // Error handling
         this.app.use(errorHandlerMiddleware)
     }
 
-    async stopApp() {
+    async stopApp(): Promise<void> {
         try {
-            const removePromises: any[] = []
-            removePromises.push(this.telemetry.flush())
-            await Promise.all(removePromises)
-        } catch (e) {
+            await this.telemetry.flush()
+        } catch (e: any) {
             logger.error(`❌[server]: Flowise Server shut down error: ${e}`)
         }
     }
