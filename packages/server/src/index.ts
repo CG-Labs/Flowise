@@ -153,14 +153,16 @@ export class App {
             })
         }
 
+        // API routes should be checked before serving static files
+        this.app.use('/api/v1', flowiseApiV1Router)
+
         // All other requests not handled by API routes will return React app
         this.app.get('*', (req: Request, res: Response) => {
             // Serve the React app for any other requests
             res.sendFile(uiHtmlPath)
         })
 
-        // API routes should be checked before serving static files
-        this.app.use('/api/v1', flowiseApiV1Router)
+        // Static file serving should be the last middleware to run, after all API and catch-all routes
 
         // Serve static files for UI
         this.app.use(express.static(uiBuildPath))
