@@ -137,17 +137,7 @@ export class App {
         // Error handling
         this.app.use(errorHandlerMiddleware)
 
-        // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
-        // It is moved inside the config method to the end of the middleware definitions
-        this.app.get('*', (req: Request, res: Response, next) => {
-            // Check if the request is for an API route and skip to next middleware if so
-            if (req.path.startsWith('/api/v1')) {
-                next()
-            } else {
-                res.sendFile(uiHtmlPath)
-            }
-        })
-
+        // Basic authentication middleware
         if (process.env.FLOWISE_USERNAME && process.env.FLOWISE_PASSWORD) {
             const username = process.env.FLOWISE_USERNAME
             const password = process.env.FLOWISE_PASSWORD
@@ -177,6 +167,18 @@ export class App {
                 } else next()
             })
         }
+
+        // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
+        // It is moved inside the config method to the end of the middleware definitions
+        this.app.get('*', (req: Request, res: Response, next) => {
+            // Check if the request is for an API route and skip to next middleware if so
+            if (req.path.startsWith('/api/v1')) {
+                next()
+            } else {
+                res.sendFile(uiHtmlPath)
+            }
+        })
+        // This section has been removed due to duplication
     }
 
     async stopApp() {
