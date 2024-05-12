@@ -9,6 +9,9 @@ const { combine, timestamp, printf, errors } = format
 // expect the log dir be relative to the projects root
 const logDir = config.logging.dir
 
+// Log the directory path to check if it's correct
+console.log(`Logging directory is set to: ${logDir}`)
+
 // Create the log directory if it doesn't exist
 if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir)
