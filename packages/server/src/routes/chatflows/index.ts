@@ -6,7 +6,7 @@ const router = express.Router()
 router.post('/', chatflowsController.saveChatflow)
 
 // READ
-router.get('/', chatflowsController.getAllChatflows)
+router.get('/all', chatflowsController.getAllChatflows) // Adjusted route to prevent conflict with '/:id'
 router.get('/:id', chatflowsController.getChatflowById)
 router.get('/apikey/:apikey', chatflowsController.getChatflowByApiKey)
 
