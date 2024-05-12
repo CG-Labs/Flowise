@@ -163,7 +163,7 @@ export class App {
         }
 
         // Serve static files for UI
-        this.app.use(express.static(uiBuildPath));
+        this.app.use(express.static(uiBuildPath))
 
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
         // It is moved inside the config method to the end of the middleware definitions
@@ -178,7 +178,7 @@ export class App {
         })
 
         // Error handling
-        this.app.use(errorHandlerMiddleware);
+        this.app.use(errorHandlerMiddleware)
     }
 
     async stopApp() {
