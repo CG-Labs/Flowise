@@ -20,6 +20,12 @@ import { sanitizeMiddleware, getCorsOptions, getAllowedIframeOrigins } from './u
 import { Telemetry } from './utils/telemetry'
 import flowiseApiV1Router from './routes'
 import errorHandlerMiddleware from './middlewares/errors'
+import chatflowsService from './services/chatflows'
+
+// Define paths for UI static files
+const packagePath = getNodeModulesPackagePath('flowise-ui')
+const uiBuildPath = path.join(packagePath, 'build')
+const uiHtmlPath = path.join(packagePath, 'build', 'index.html')
 
 declare global {
     namespace Express {
@@ -147,24 +153,30 @@ export class App {
             })
         }
 
+        // All other requests not handled by API routes will return React app
+        this.app.get('*', (req: Request, res: Response) => {
+            // Serve the React app for any other requests
+            res.sendFile(uiHtmlPath)
+        })
+
         // API routes should be checked before serving static files
         this.app.use('/api/v1', flowiseApiV1Router)
 
+        // Serve static files for UI
+        this.app.use(express.static(uiBuildPath))
+
+        // Route to get all chatflows
+        flowiseApiV1Router.get('/get-all-chatflows', async (req: Request, res: Response) => {
+            try {
+                const chatflows = await chatflowsService.getAllChatflows()
+                res.json({ chatflows })
+            } catch (error) {
+                res.status(500).json({ error: 'Failed to retrieve chatflows', details: error })
+            }
+        })
+
         // Error handling
         this.app.use(errorHandlerMiddleware)
-
-        // Define paths for UI static files
-        const packagePath = getNodeModulesPackagePath('flowise-ui')
-        const uiBuildPath = path.join(packagePath, 'build')
-        const uiHtmlPath = path.join(packagePath, 'build', 'index.html')
-
-        // Serve UI static files before the catch-all route to ensure API calls are not intercepted
-        this.app.use('/', express.static(uiBuildPath))
-
-        // All other requests not handled by API routes will return React app
-        this.app.get('*', (req: Request, res: Response) => {
-            res.sendFile(uiHtmlPath)
-        })
     }
 
     async stopApp() {
