@@ -139,7 +139,7 @@ export class App {
             if (req.originalUrl.startsWith('/api/v1')) {
                 next() // Pass API requests to the next middleware
             } else {
-                res.sendFile(uiHtmlPath) // Serve static files for non-API requests
+                res.status(404).send('Not Found') // Respond with 404 for non-API requests not handled by static files
             }
         })
 
