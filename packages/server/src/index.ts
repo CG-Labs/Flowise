@@ -135,8 +135,8 @@ export class App {
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
         // It serves index.html for any non-API requests
         this.app.get('*', (req: Request, res: Response, next: NextFunction) => {
-            // Check if the request is for an API endpoint
-            if (!req.originalUrl.startsWith('/api/v1')) {
+            // Check if the request is for an API endpoint and not the get-all-chatflows endpoint
+            if (!req.originalUrl.startsWith('/api/v1') && !req.originalUrl.includes('/api/v1/chatflows/get-all-chatflows')) {
                 // For non-API requests, serve the index.html file
                 res.sendFile(path.join(uiBuildPath, 'index.html'))
             } else {
