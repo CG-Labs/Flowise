@@ -117,6 +117,12 @@ export class App {
         // Add the sanitizeMiddleware to guard against XSS
         this.app.use(sanitizeMiddleware)
 
+        // Middleware to log the request path and method
+        this.app.use((req, res, next) => {
+            logger.info(`Request received: ${req.method} ${req.path}`)
+            next()
+        })
+
         // Make io accessible to our router on req.io
         this.app.use((req, res, next) => {
             req.io = socketIO
@@ -153,32 +159,31 @@ export class App {
             })
         }
 
+        // Route handler for '/api/v1/get-all-chatflows'
+        flowiseApiV1Router.get('/get-all-chatflows', async (req: Request, res: Response) => {
+            try {
+                const chatflows = await chatflowsService.getAllChatflows()
+                res.json(chatflows)
+            } catch (error) {
+                logger.error(`Error retrieving chatflows: ${error}`)
+                res.status(500).send('Error retrieving chatflows')
+            }
+        })
+
         // API routes should be checked before serving static files
         this.app.use('/api/v1', flowiseApiV1Router)
+
+        // Error handling
+        this.app.use(errorHandlerMiddleware)
+
+        // Serve static files for UI
+        this.app.use(express.static(uiBuildPath))
 
         // All other requests not handled by API routes will return React app
         this.app.get('*', (req: Request, res: Response) => {
             // Serve the React app for any other requests
             res.sendFile(uiHtmlPath)
         })
-
-        // Static file serving should be the last middleware to run, after all API and catch-all routes
-
-        // Serve static files for UI
-        this.app.use(express.static(uiBuildPath))
-
-        // Route to get all chatflows
-        flowiseApiV1Router.get('/get-all-chatflows', async (req: Request, res: Response) => {
-            try {
-                const chatflows = await chatflowsService.getAllChatflows()
-                res.json({ chatflows })
-            } catch (error) {
-                res.status(500).json({ error: 'Failed to retrieve chatflows', details: error })
-            }
-        })
-
-        // Error handling
-        this.app.use(errorHandlerMiddleware)
     }
 
     async stopApp() {
