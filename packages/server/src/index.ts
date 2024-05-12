@@ -169,10 +169,10 @@ export class App {
         // It is moved inside the config method to the end of the middleware definitions
         this.app.get('*', (req: Request, res: Response, next) => {
             // Serve index.html for any non-API requests
-            if (!req.path.startsWith('/api/')) {
+            if (!req.path.startsWith('/api/v1')) {
                 res.sendFile(uiHtmlPath)
             } else {
-                // If the request starts with '/api/', it should be handled by the API routes
+                // If the request starts with '/api/v1', it should be handled by the API routes
                 next()
             }
         })
