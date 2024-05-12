@@ -26,6 +26,18 @@ async function errorHandlerMiddleware(err: InternalFlowiseError, req: Request, r
         headers: req.headers
     })
 
+    // Additionally, log the error to the console
+    console.error(`Error: ${err.message}`, {
+        statusCode: displayedError.statusCode,
+        stack: err.stack,
+        method: req.method,
+        url: req.url,
+        body: req.body,
+        query: req.query,
+        params: req.params,
+        headers: req.headers
+    })
+
     res.setHeader('Content-Type', 'application/json')
     res.status(displayedError.statusCode).json(displayedError)
 }

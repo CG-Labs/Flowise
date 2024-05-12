@@ -7,7 +7,7 @@ import { NextFunction, Request, Response } from 'express'
 const { combine, timestamp, printf, errors } = format
 
 // expect the log dir be relative to the projects root
-const logDir = config.logging.dir
+const logDir = path.join(__dirname, '../../logs') // Updated to ensure logs directory is at the root of the project
 
 // Create the log directory if it doesn't exist
 if (!fs.existsSync(logDir)) {
@@ -30,22 +30,22 @@ const logger = createLogger({
     transports: [
         new transports.Console(),
         new transports.File({
-            filename: path.join(logDir, config.logging.server.filename ?? 'server.log'),
-            level: config.logging.server.level ?? 'info'
+            filename: path.join(logDir, 'server.log'), // Updated to use a fixed filename
+            level: 'info'
         }),
         new transports.File({
-            filename: path.join(logDir, config.logging.server.errorFilename ?? 'server-error.log'),
+            filename: path.join(logDir, 'server-error.log'), // Updated to use a fixed filename
             level: 'error' // Log only errors to this file
         })
     ],
     exceptionHandlers: [
         new transports.File({
-            filename: path.join(logDir, config.logging.server.errorFilename ?? 'server-error.log')
+            filename: path.join(logDir, 'server-error.log') // Updated to use a fixed filename
         })
     ],
     rejectionHandlers: [
         new transports.File({
-            filename: path.join(logDir, config.logging.server.errorFilename ?? 'server-error.log')
+            filename: path.join(logDir, 'server-error.log') // Updated to use a fixed filename
         })
     ]
 })
@@ -74,8 +74,8 @@ export function expressRequestLogger(req: Request, res: Response, next: NextFunc
             },
             transports: [
                 new transports.File({
-                    filename: path.join(logDir, config.logging.express.filename ?? 'server-requests.log.jsonl'),
-                    level: config.logging.express.level ?? 'debug'
+                    filename: path.join(logDir, 'server-requests.log.jsonl'), // Updated to use a fixed filename
+                    level: 'debug'
                 })
             ]
         })
