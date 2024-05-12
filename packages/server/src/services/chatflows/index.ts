@@ -105,6 +105,7 @@ const getAllChatflows = async (): Promise<IChatFlow[]> => {
         const dbResponse = await appServer.AppDataSource.getRepository(ChatFlow).find()
         return dbResponse
     } catch (error) {
+        logger.error(`Error in getAllChatflows: ${(error as any).message}, Stack: ${(error as any).stack}`)
         throw new InternalFlowiseError(
             StatusCodes.INTERNAL_SERVER_ERROR,
             `Error: chatflowsService.getAllChatflows - ${getErrorMessage(error)}`
