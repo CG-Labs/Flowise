@@ -131,12 +131,6 @@ export class App {
             next()
         })
 
-        // Serve static files for UI
-        this.app.use(express.static(uiBuildPath))
-
-        // Error handling
-        this.app.use(errorHandlerMiddleware)
-
         // Basic authentication middleware
         if (process.env.FLOWISE_USERNAME && process.env.FLOWISE_PASSWORD) {
             const username = process.env.FLOWISE_USERNAME
@@ -168,6 +162,9 @@ export class App {
             })
         }
 
+        // Serve static files for UI
+        this.app.use(express.static(uiBuildPath));
+
         // This catch-all route handler should be after all other middleware to ensure it only catches unhandled requests
         // It is moved inside the config method to the end of the middleware definitions
         this.app.get('*', (req: Request, res: Response, next) => {
@@ -179,6 +176,9 @@ export class App {
                 next()
             }
         })
+
+        // Error handling
+        this.app.use(errorHandlerMiddleware);
     }
 
     async stopApp() {
